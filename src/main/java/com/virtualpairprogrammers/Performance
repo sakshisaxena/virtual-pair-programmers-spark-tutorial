@@ -1,0 +1,18 @@
+A partition is a chunk of data.. Distributed among the number of worker nodes.
+Sparks partitioning depends on the source of input data.
+There are two types of transformation -> Narrow and Wide
+Narrow transformation are tasks executed within the partition like mapToPair, filter
+Wide transformation (expensive operations) involves shuffling/serializing of data between worker nodes like groupByKey (creates partition based on key)
+A stage is a series of transformation where shuffle is not required.
+A new stage is created as soon as a shuffle is needed.
+In Dag, EACH BOX IS A TRANFORMATION.
+
+In example, in the first stage the data was distributed among the 11 nodes. But in second stage, data was distributed only in two nodes and rest 9 were sitting idle.
+It can be a problem when second stage has a heavy task to run and then the work is not parallelized. It usually happens because of operations on keys and if we dont 
+have a big set of keys all can be joined in a single node. "Salting" is creating more keys so that data is spread over more partitions.
+
+GroupByKey stores the whole group in one node which can result in out of memory exception even though other nodes will be empty. Better to use reduceByKey, as it has two steps.
+First step, the reduce is done within the partitions (no shuffling is required), it is called map by reduce. Second step, the shuffle is done and the values are added for each key but the amount of
+data shuffled is very less (sums)
+
+Spark does not persist the transformations (shuffles) itself so we can explicitly persist in memory or disk.
